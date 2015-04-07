@@ -1,0 +1,4 @@
+USA1,http://54.81.10.100:8000/haproxy,newCol,usa.jpg
+USA2,http://54.81.10.101:8000/haproxy,blabla,usa.jpg
+EUROPE1,http://54.81.10.102:8000/haproxy,newCol,usa.jpg
+AFRICA,http://54.81.10.103:8000/haproxy,nothing,usa.jpg
