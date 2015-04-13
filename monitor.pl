@@ -82,9 +82,19 @@ while (my $row = <$fh>) {
 		## Break column by closing div and opening a new one
 		$buildFinalPage = $buildFinalPage . '<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR></div></td><td width="157px"> <div style="overflow:auto; width:157px">';
 	}
+	
+	##Create LWP Object, Set timeout, get url content
 	my $content = "";
-    my $content = get $url;
-    #die "Couldn't get $url" unless defined $content;
+	my $ua = LWP::UserAgent->new;
+    $ua->timeout(10);
+    $ua->env_proxy;
+	my $response = $ua->get($url);
+    if ($response->is_success) {
+		$content = $response->decoded_content;
+    }else{
+		print "\n" . $response->status_line . "\n";
+	}
+
 	# Remove all new lines from code for easier parsing
     $content =~ s/[\n\r]//g;
     # Locate haproxy http table and cut it from the rest of the html
@@ -97,7 +107,7 @@ while (my $row = <$fh>) {
    	  $buildFinalPage = $buildFinalPage . "\n" . "<table class=\"tbl\" width=\"100%\">" . $table . "\n";
 	  #Update perl console that a cluster was successfully parsed 
       print "found " . $cluster . "\n";
-    } else {
+    }else{
 	  #If url was unresponsive or couldn't find the pattern in the hxproxy page do this
 	  #Update perl console that a cluster was not successfully parsed
       print "ERROR! Cluster: " . $cluster . " not responding\n";
