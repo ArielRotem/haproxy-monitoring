@@ -6,7 +6,9 @@ This is my haproxy monitoring project, built from scratch.
 While the script runs in the background, it parses all haproxy pages from the haproxy list machines.txt and 
 generates an autorefreshing html page for monitoring all tables aesthetically and aliased in one place.  
 
-Output should look like this*:
+Taking multiple HaProxy pages that look like this:
+https://tech.shareaholic.com/post-assets/2012/10/26/haproxy-dashboard.png
+Proccecing them into a page that looks like this:
 http://oi61.tinypic.com/121acub.jpg
 
 ##################################################################################
