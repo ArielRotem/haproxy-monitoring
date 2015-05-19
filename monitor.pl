@@ -3,31 +3,30 @@ use LWP::Simple;
 
 ################### IMPORTANT VERIABLES ##################################################### 
 require "config.pl";
-
 ################### IMPORTANT HTML ##################################################### 
 require "html.pl";
- 
 #############################################################################################
 ################### SCRIPT BEGINNING ########################################################  
 
 ##Negative values mean alert sound will play. After a sound plays set a positive number for cycles to "timeout"
 my $soundMuteCountCycle = -1;
+my $clusterDown = false; 
 while(true){
 $soundMuteCountCycle--; 
 open(my $fh, '<:encoding(UTF-8)', $machinePath)or die "Could not open file '$machinePath' $!";
 
 ## Set page with header + script run time ##
-my $buildFinalPage = $header . '<H3>Check Time:'.localtime().'</H3><tr style="vertical-align: top;"><td width="157px"> <div style="overflow:auto; width:157px; vertical-align: top;">';
+my $buildFinalPage = $header . '<H3>Check Time:'.localtime().'</H3><tr style="vertical-align: top;"><td width="157px"> <div style="overflow:hidden; width:157px; vertical-align: top;">';
 ## for each hxproxy instance in list
 while (my $row = <$fh>) {
 	
 	chomp $row;
 	my $newCol = "";
 	(my $cluster,my $url ,my $newCol,my $image) = split(',',$row);
-	if($newLine eq "newCol"){
+	if($newCol eq "newCol" || $newCol eq "break"){
 		## Insert new lines to hide bottom slider from sight
 		## Break column by closing div and opening a new one
-		$buildFinalPage = $buildFinalPage . '<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR></div></td><td width="157px"> <div style="overflow:auto; width:157px">';
+		$buildFinalPage = $buildFinalPage . '<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR></div></td><td width="157px"> <div style="overflow:hidden; width:157px;">';
 	}
 	
 	##Create LWP Object, Set timeout, get url content
@@ -51,7 +50,7 @@ while (my $row = <$fh>) {
 	  #Replace word "Frontend" with the cluster name, and add background image\flag in case one is supplied (soon)
 	  $table =~ s/>Frontend</><H2><a STYLE="color:black; text-decoration:none;" href=$url>$cluster<\/a><\/H2></;
 	  #Add to final page
-   	  $buildFinalPage = $buildFinalPage . "\n" . "<table class=\"tbl\" width=\"100%\">" . $table . "\n";
+   	  $buildFinalPage = $buildFinalPage . "\n" . "<table class=\"tbl\" width=\"100%\"> " . $table . "\n";
 	  #Update perl console that a cluster was successfully parsed 
       print "found " . $cluster . "\n";
     }else{
