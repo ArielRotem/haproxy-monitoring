@@ -10,27 +10,20 @@ require "html.pl";
 
 ##Negative values mean alert sound will play. After a sound plays set a positive number for cycles to "timeout"
 my $soundMuteCountCycle = -1;
-my $clusterDown = false; 
-while(true){
-$soundMuteCountCycle--; 
-open(my $fh, '<:encoding(UTF-8)', $machinePath)or die "Could not open file '$machinePath' $!";
+our $clusterDown = false; 
 
-## Set page with header + script run time ##
-my $buildFinalPage = $header . '<H3>Check Time:'.localtime().'</H3><tr style="vertical-align: top;"><td width="157px"> <div style="overflow:hidden; width:157px; vertical-align: top;">';
-## for each hxproxy instance in list
-while (my $row = <$fh>) {
-	
-	chomp $row;
-	my $newCol = "";
-	(my $cluster,my $url ,my $newCol,my $image) = split(',',$row);
+#############################################################################################
+################### SCRIPT  SUBS ############################################################
+sub pharsCluster{
+	my $clusterInfo = $_[0];
+	chomp $clusterInfo;
+	(our $cluster,our $url ,my $newCol,my $image) = split(',',$clusterInfo);
 	if($newCol eq "newCol" || $newCol eq "break"){
-		## Insert new lines to hide bottom slider from sight
 		## Break column by closing div and opening a new one
-		$buildFinalPage = $buildFinalPage . '<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR></div></td><td width="157px"> <div style="overflow:hidden; width:157px;">';
+		$buildFinalPage = $buildFinalPage . '<BR></div></td><td width="157px"> <div style="overflow:hidden; width:157px;">';
 	}
-	
 	##Create LWP Object, Set timeout, get url content
-	my $content = "";
+	our $content = "";
 	my $ua = LWP::UserAgent->new;
     $ua->timeout(10);
     $ua->env_proxy;
@@ -39,11 +32,33 @@ while (my $row = <$fh>) {
 		$content = $response->decoded_content;
     }else{
 		print "\n" . $response->status_line . "\n";
+		$buildFinalPage = $buildFinalPage ."\n<BR><H2>".$cluster."<BR>See Error <BR> in console<\/H2>\n<BR>";
+		return;
 	}
-
 	# Remove all new lines from code for easier parsing
     $content =~ s/[\n\r]//g;
-    # Locate haproxy http table and cut it from the rest of the html
+	my $version = getVersion();
+	#if($version eq "1.4.15" || $version eq "1.4.21" || $version eq "1.4.22"){
+	#	pharsV1_4_X();
+	#}elsif($version eq "1.5.2"){
+	#	pharsV1_5_X();
+	#}
+    pharsV1_4_X();
+}
+
+###############
+
+sub getVersion{
+	if($content =~ m/.*?HAProxy version (.*?\..*?\..*?),.*?/){
+	return $1
+	}
+	
+}
+
+###############
+
+sub pharsV1_4_X{
+	# Locate haproxy http table and cut it from the rest of the html
     if($content =~ m/.*?<\/tr>(<tr class="frontend">.*?)<tr class="backend">.*?/) {
 	  #Close table before "backend" section
 	  my $table = $1 . "</tr></table>";
@@ -60,35 +75,73 @@ while (my $row = <$fh>) {
 	  #Update page that hxproxy list was not\did not response
 	  $buildFinalPage = $buildFinalPage ."\n<BR><H2>".$cluster."<BR>NOT FOUND!<\/H2>\n<BR>";
     }
-
 }
- #Add a signature to your page and add padding to hide bottom scrolling bar
- $signature = "NocRulz <BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>";
- 
- #open output file and write to it
- open(my $fh3, '>', $outputPath)or die "Could not open file '$outputPath' $!";
- print $fh3 "" . $buildFinalPage . $signature . $tail ;
- close $fh;
- close $fh3;
- # Play sounds if a machine is down with cycle mute (working) and play different sound when a whole cluster is down (soon)
- if($buildFinalPage =~ m/DOWN/){
- 
-	if($soundMuteCountCycle<0){
-		$soundMuteCountCycle = $soundMuteXCycles;
-		use Win32::Sound;
-		Win32::Sound::Volume('50%');
-		Win32::Sound::Play("blackhawkdown.wav");
-		print "\n Sleping 5secs\n ";
-		sleep(5);
-		Win32::Sound::Stop();
-	}else{
-		print "\n Sleping 5secs \n";
-		sleep(5);
+
+###############
+
+sub pharsV1_5_X{
+	# Locate haproxy http table and cut it from the rest of the html
+    if($content =~ m/.*?<\/tr>(<tr class="frontend">.*?)<tr class="backend">.*?/) {
+	  #Close table before "backend" section
+	  my $table = $1 . "</tr></table>";
+	  #Replace word "Frontend" with the cluster name, and add background image\flag in case one is supplied (soon)
+	  $table =~ s/>Frontend</><H2><a STYLE="color:black; text-decoration:none;" href=$url>$cluster<\/a><\/H2></;
+	  #Add to final page
+   	  $buildFinalPage = $buildFinalPage . "\n" . "<table class=\"tbl\" width=\"100%\"> " . $table . "\n";
+	  #Update perl console that a cluster was successfully parsed 
+      print "found " . $cluster . "\n";
+    }else{
+	  #If url was unresponsive or couldn't find the pattern in the hxproxy page do this
+	  #Update perl console that a cluster was not successfully parsed
+      print "ERROR! Cluster: " . $cluster . " not responding\n";
+	  #Update page that hxproxy list was not\did not response
+	  $buildFinalPage = $buildFinalPage ."\n<BR><H2>".$cluster."<BR>NOT FOUND!<\/H2>\n<BR>";
+    }
+}
+
+###############
+
+sub playAlerts{
+	if($buildFinalPage =~ m/DOWN/){
+		if($soundMuteCountCycle<0){
+			$soundMuteCountCycle = $soundMuteXCycles;
+			use Win32::Sound;
+			Win32::Sound::Volume('50%');
+			Win32::Sound::Play("blackhawkdown.wav");
+			sleep(5);
+			Win32::Sound::Stop();
+		}
 	}
- }else{
- print "\n Sleping 5secs \n";
- sleep(5);
-}   
+	print "\nSleping 5 seconds \n";
+	sleep(5);
+}
+
+##############
+
+sub outputResult{
+	#open output file and write to it
+	open(my $fh3, '>', $outputPath)or die "Could not open file '$outputPath' $!";
+	print $fh3 "" . $buildFinalPage . $signature . $tail ;
+	close $fh;
+	close $fh3;
+}
+
+#############################################################################################
+################### SCRIPT BEGINNING ######################################################## 
+
+while(true){
+$soundMuteCountCycle--; 
+open(my $fh, '<:encoding(UTF-8)', $machinePath)or die "Could not open file '$machinePath' $!";
+
+## Set page with header + script run time ##
+our $buildFinalPage = $header . '<H3>Check Time:'.localtime().'</H3><tr style="vertical-align: top;"><td width="157px"> <div style="overflow:hidden; width:157px; vertical-align: top;">';
+## for each hxproxy instance in list
+while (my $row = <$fh>) {
+	pharsCluster($row);
+}
+
+ outputResult();
+ playAlerts();
  
 
 }

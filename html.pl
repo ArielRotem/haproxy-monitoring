@@ -29,7 +29,9 @@ li { margin-top: 0.25em; margin-right: 2em;}
 .active3	{background: -webkit-gradient(linear, left top, left bottom, from(#7DCF3D), to(#52A93E));
 			 background: -moz-linear-gradient(top, #7DCF3D,  #52A93E);
 			 background: linear-gradient(#7DCF3D, #52A93E);}
-.active4	{background: #ffffa0;}
+.active4	{background: -webkit-gradient(linear, left top, left bottom, from(#7DCF3D), to(#52A93E));
+			 background: -moz-linear-gradient(top, #7DCF3D,  #52A93E);
+			 background: linear-gradient(#7DCF3D, #52A93E);}
 .active5	{background: #a0e0a0;}
 .active6	{background: #e0e0e0;}
 .backup0	{background: #ff9090;}
@@ -55,6 +57,21 @@ table.lgd { border-collapse: collapse; border-width: 1px; border-style: none non
 table.lgd td { border-width: 1px; border-style: solid solid solid solid; border-color: gray; padding: 2px;}
 table.lgd td.noborder { border-style: none; padding: 2px; white-space: nowrap;}
 u {text-decoration:none; border-bottom: 1px dotted black;}
+div.tips {
+ display:block;
+ visibility:hidden;
+ z-index:2147483647;
+ position:absolute;
+ padding:2px 4px 3px;
+ background:#f0f060; color:#000000;
+ border:1px solid #7040c0;
+ white-space:nowrap;
+ font-style:normal;font-size:11px;font-weight:normal;
+ -moz-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;
+ -moz-box-shadow:gray 2px 2px 3px;-webkit-box-shadow:gray 2px 2px 3px;box-shadow:gray 2px 2px 3px;
+}
+u:hover div.tips {visibility:visible;}
 -->
 </style><meta http-equiv="refresh" content="5" ></head><BODY bgcolor="e8e8d0"><table cellpadding="0">';
 our $tail = '</tr></table></BODY></HTML>';
+our $signature = "NocRulz <BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>";
