@@ -74,4 +74,4 @@ u:hover div.tips {visibility:visible;}
 -->
 </style><meta http-equiv="refresh" content="5" ></head><BODY bgcolor="e8e8d0"><table cellpadding="0">';
 our $tail = '</tr></table></BODY></HTML>';
-our $signature = "NocRulz <BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>";
+our $signature = "<BR><BR><BR><BR>V1.3.0 Ariel.R©";
